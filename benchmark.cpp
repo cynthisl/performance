@@ -10,6 +10,7 @@
 #include <math.h>
 #include <list>
 #include <set>
+#include <numeric>
 
 using namespace std;
 using namespace std::chrono;
@@ -22,11 +23,11 @@ auto timeFunction = [](auto && F, auto && ... params) {
     return duration_cast<microseconds>(stop - start).count();
 };
 
-auto calcMean(vector<long int> vals) {
+long calcMean(vector<long int> vals) {
     auto sum = std::accumulate(vals.begin(), vals.end(), 0);
     return sum/vals.size();
 }
-auto calcStddev(vector<long int> vals) {
+long calcStddev(vector<long int> vals) {
     long int mean = calcMean(vals);
     std::vector<long int> diffs(vals.size());
     std::transform(vals.begin(), vals.end(), diffs.begin(),
@@ -35,7 +36,7 @@ auto calcStddev(vector<long int> vals) {
     return std::sqrt(sum/vals.size());
 }
 
-auto calcMedian(vector<long int> vals) {
+long calcMedian(vector<long int> vals) {
     std::nth_element(vals.begin(), vals.begin() + vals.size()/2, vals.end());
     return vals[vals.size()/2];
 }
@@ -330,6 +331,13 @@ class SetBenchmark : public BenchmarkInterface {
     }
 };
 
+void testBenchmark(BenchmarkInterface *b, int runs) {
+    b->run();
+    b->repeat("iterate", runs);
+    b->repeat("search", runs);
+    b->repeat("insert", runs);
+    b->repeat("erase", runs);
+}
 
 int main(int argc, char* argv[]) {
 
@@ -340,8 +348,7 @@ int main(int argc, char* argv[]) {
      */
     
     VectorBenchmark v(pow(10, 6));
-    v.run();
-    v.repeat("search", 1000);
+    testBenchmark(&v, 1000);
 
     return 0;
 }
