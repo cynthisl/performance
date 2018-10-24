@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <ctime>
 #include <chrono>
@@ -11,9 +12,12 @@
 #include <list>
 #include <set>
 #include <numeric>
+#include <unistd.h>
 
 using namespace std;
 using namespace std::chrono;
+
+int WARMUP = 25;
 
 auto timeFunction = [](auto && F, auto && ... params) {
     auto start = high_resolution_clock::now();
@@ -33,7 +37,7 @@ long calcStddev(vector<long int> vals) {
     std::transform(vals.begin(), vals.end(), diffs.begin(),
             [mean](long int x){return x - mean;});
     auto sum = std::inner_product(diffs.begin(), diffs.end(), diffs.begin(), 0);
-    return std::sqrt(sum/vals.size());
+    return std::sqrt(sum/(vals.size()-1));
 }
 
 long calcMedian(vector<long int> vals) {
@@ -92,38 +96,55 @@ class BenchmarkInterface {
         std::cout << "erase: " << timeErase() << std::endl;
     }
 
+    void warmupIterate() {
+	for(int i=0; i<WARMUP; i++) {
+	    timeIterate();
+	}
+    }
+
+    void warmupSearch() {
+	for(int i=0; i<WARMUP; i++) {
+	    timeSearch();
+	}
+    }
+
+    void warmupInsert() {
+	for(int i=0; i<WARMUP; i++) {
+	    timeInsert();
+	}
+    }
+
+    void warmupErase() {
+	for(int i=0; i<WARMUP; i++) {
+	    timeErase();
+	}
+    }
+
+
     void repeat(string command, int times) {
         vector<long int> results(times);
         int warmup = 25;
 
         if(command == "iterate") {
-            for(int i=0; i<warmup; i++) {
-                timeIterate();
-            }
+	    warmupIterate();
             for(int i=0; i<times; i++) {
                 results[i] = timeIterate();
             }
         }
         else if(command == "insert") {
-            for(int i=0; i<warmup; i++) {
-                timeInsert();
-            }
+	    warmupInsert();
             for(int i=0; i<times; i++) {
                 results[i] = timeInsert();
             }
         }
         else if(command == "search") {
-            for(int i=0; i<warmup; i++) {
-                timeSearch();
-            }
+            warmupSearch();
             for(int i=0; i<times; i++) {
                 results[i] = timeSearch();
             }
         }
         else if(command == "erase") {
-            for(int i=0; i<warmup; i++) {
-                timeErase();
-            }
+            warmupErase();
             for(int i=0; i<times; i++) {
                 results[i] = timeErase();
             }
@@ -332,7 +353,8 @@ class SetBenchmark : public BenchmarkInterface {
 };
 
 void testBenchmark(BenchmarkInterface *b, int runs) {
-    b->run();
+    //b->run();
+    
     b->repeat("iterate", runs);
     b->repeat("search", runs);
     b->repeat("insert", runs);
@@ -347,8 +369,39 @@ int main(int argc, char* argv[]) {
      *  percent iterate, insert, search, delete
      */
     
-    VectorBenchmark v(pow(10, 6));
-    testBenchmark(&v, 1000);
+    if(argc <= 3) {
+	cout << "Args: power, times to repeat" << endl;
+	return 1;
+    }
+    int opt;
+    int num_pow = 6;
+    int times_repeat = 1;
+    while ((opt = getopt(argc, argv, "p:n:")) != -1) {
+	switch(opt) {
+		case 'p':
+			num_pow = atoi(optarg);
+			break;
+		case 'n':
+			times_repeat = atoi(optarg);
+			break;
+	}
+    }
 
+    cout << "Vector" << endl;
+    VectorBenchmark v(pow(10, num_pow));
+    testBenchmark(&v, times_repeat);
+
+    /*cout << "List" << endl;
+    ListBenchmark l(pow(10, num_pow));
+    testBenchmark(&l, times_repeat);
+
+    cout << "Map" << endl;
+    MapBenchmark m(pow(10, num_pow));
+    testBenchmark(&m, times_repeat);
+
+   cout << "Set" << endl;
+    SetBenchmark s(pow(10, num_pow));
+    testBenchmark(&s, times_repeat);
+*/
     return 0;
 }
