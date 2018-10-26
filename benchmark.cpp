@@ -11,6 +11,7 @@
 #include <math.h>
 #include <list>
 #include <set>
+#include <unordered_set>
 #include <numeric>
 #include <unistd.h>
 
@@ -19,39 +20,26 @@ using namespace std::chrono;
 
 int WARMUP = 25;
 
-auto timeFunction = [](auto && F, auto && ... params) {
-    auto start = high_resolution_clock::now();
-    std::forward<decltype(F)>(F)
-        (std::forward<decltype(params)>(params)...);
-    auto stop = high_resolution_clock::now();
-    return duration_cast<microseconds>(stop - start).count();
-};
-
-long calcMean(vector<long int> vals) {
+double calcMean(vector<float> vals) {
     auto sum = std::accumulate(vals.begin(), vals.end(), 0);
     return sum/vals.size();
 }
-long calcStddev(vector<long int> vals) {
-    long int mean = calcMean(vals);
-    std::vector<long int> diffs(vals.size());
+double calcStddev(vector<float> vals) {
+    double mean = calcMean(vals);
+    std::vector<float> diffs(vals.size());
     std::transform(vals.begin(), vals.end(), diffs.begin(),
-            [mean](long int x){return x - mean;});
+            [mean](float x){return x - mean;});
     auto sum = std::inner_product(diffs.begin(), diffs.end(), diffs.begin(), 0);
-    return std::sqrt(sum/(vals.size()-1));
+    return std::sqrt(sum/(vals.size()));
 }
 
-long calcMedian(vector<long int> vals) {
+double calcMedian(vector<float> vals) {
     std::nth_element(vals.begin(), vals.begin() + vals.size()/2, vals.end());
     return vals[vals.size()/2];
 }
 
 class BenchmarkInterface {
     public:
-    /*clock_t timing(void(BenchmarkInterface::*func)()) {
-        clock_t start = clock();
-        (*func)();
-        return clock() - start;
-    }*/
     long size;
     long searchVal;
     virtual void iterate() = 0;
@@ -66,27 +54,27 @@ class BenchmarkInterface {
         auto start = high_resolution_clock::now();
         iterate();
         auto stop = high_resolution_clock::now();
-        return duration_cast<microseconds>(stop - start).count();
+        return duration_cast<nanoseconds>(stop - start).count();
     }
     auto timeInsert() {
         insertSetup();
         auto start = high_resolution_clock::now();
         insert();
         auto stop = high_resolution_clock::now();
-        return duration_cast<microseconds>(stop - start).count();
+        return duration_cast<nanoseconds>(stop - start).count();
     }
     auto timeSearch() {
         auto start = high_resolution_clock::now();
         search();
         auto stop = high_resolution_clock::now();
-        return duration_cast<microseconds>(stop - start).count();
+        return duration_cast<nanoseconds>(stop - start).count();
     }
     auto timeErase() {
         eraseSetup();
         auto start = high_resolution_clock::now();
         erase();
         auto stop = high_resolution_clock::now();
-        return duration_cast<microseconds>(stop - start).count();
+        return duration_cast<nanoseconds>(stop - start).count();
     }
 
     void run() {
@@ -120,10 +108,8 @@ class BenchmarkInterface {
 	}
     }
 
-
     void repeat(string command, int times) {
-        vector<long int> results(times);
-        int warmup = 25;
+        vector<float> results(times);
 
         if(command == "iterate") {
 	    warmupIterate();
@@ -154,9 +140,52 @@ class BenchmarkInterface {
         /*for(int i=0; i<times; i++) {
             cout << results[i] << endl;
         }*/
-        cout << "Mean: " << calcMean(results) << endl;
-        cout << "Median: " << calcMedian(results) << endl;
-        cout << "Stddev: " << calcStddev(results) << endl;
+        //cout << "Mean: " << calcMean(results) << endl;
+        //cout << "Median: " << calcMedian(results) << endl;
+        //cout << "Stddev: " << calcStddev(results) << endl;
+        cout<<calcMean(results)<<"\t"<<calcMedian(results)<<"\t"<<calcStddev(results)<<endl;
+    }
+
+
+    auto simulateWorkload(int num_runs, 
+            double percent_iterate,
+            double percent_search,
+            double percent_insert,
+            double percent_erase) {
+        long total_time=0;
+
+        //cout<<"Iterate"<<endl;
+	    warmupIterate();
+        for(int i=0; i<(int)(num_runs*percent_iterate); i++) {
+            auto t = timeIterate();
+            total_time += t;
+            //cout<<t<<endl;
+        }
+
+        //cout<<"Insert"<<endl;
+	    warmupInsert();
+        for(int i=0; i<(int)(num_runs*percent_insert); i++) {
+            auto t = timeInsert();
+            total_time += t;
+            //cout<<t<<endl;
+        }
+
+        //cout<<"Search"<<endl;
+        warmupSearch();
+        for(int i=0; i<(int)(num_runs*percent_search); i++) {
+            auto t = timeSearch();
+            total_time += t;
+            //cout<<t<<endl;
+        }
+
+        //cout<<"Erase"<<endl;
+        warmupErase();
+        for(int i=0; i<(int)(num_runs*percent_erase); i++) {
+            auto t = timeErase();
+            total_time += t;
+            //cout<<t<<endl;
+        }
+        return total_time;
 
     }
 };
@@ -190,11 +219,11 @@ class VectorBenchmark : public BenchmarkInterface {
         tmpVector = testVector;
     }
     void insert() {
-        tmpVector.push_back(-1);
+        tmpVector.push_back(rand() % size);
     }
 
     void search() {
-        find(testVector.begin(), testVector.end(), searchVal);
+        find(testVector.begin(), testVector.end(), rand() % size);
     }
 
     void eraseSetup() {
@@ -243,11 +272,11 @@ class ListBenchmark : public BenchmarkInterface {
         tmpList = testList;
     }
     void insert() {
-        tmpList.push_back(-1);
+        tmpList.push_back(rand() % size);
     }
 
     void search() {
-        find(testList.begin(), testList.end(), searchVal);
+        find(testList.begin(), testList.end(), rand() % size);
     }
 
     void eraseSetup() {
@@ -295,17 +324,17 @@ class MapBenchmark : public BenchmarkInterface {
         tmpMap = testMap;
     }
     void insert() {
-        tmpMap.insert(std::pair<long, int>(100, 100));
+        tmpMap.insert(std::pair<long, int>(rand() % size, 100));
     }
 
     void search() {
-        testMap.find(searchVal);
+        testMap.find(rand() % size);
     }
     void eraseSetup() {
         tmpMap = testMap;
     }
     void erase() {
-        tmpMap.erase(searchVal);
+        tmpMap.erase(rand() % size);
     }
 
 };
@@ -338,17 +367,58 @@ class SetBenchmark : public BenchmarkInterface {
         tmpSet = testSet;
     }
     void insert() {
-        tmpSet.insert(100);
+        tmpSet.insert(rand() % size);
     }
 
     void search() {
-        testSet.find(searchVal);
+        testSet.find(rand() % size);
     }
     void eraseSetup() {
         tmpSet = testSet;
     }
     void erase() {
-        tmpSet.erase(searchVal);
+        tmpSet.erase(rand() % size);
+    }
+};
+
+class UnorderedSetBenchmark : public BenchmarkInterface {
+    public:
+    std::unordered_set<long> testSet;
+    std::unordered_set<long> tmpSet;
+    long searchVal;
+
+    UnorderedSetBenchmark(long elements) {
+        size = elements;
+        for(long i=0; i<size; i++) {
+            testSet.insert(i);
+        }
+        searchVal = rand() % size;
+    }
+        
+    void iterate() {
+        int count = 0;
+        for(auto it=testSet.begin();
+                it!=testSet.end();
+                ++it) {
+            count = *it;
+        }
+    }
+
+    void insertSetup() {
+        tmpSet = testSet;
+    }
+    void insert() {
+        tmpSet.insert(rand() % size);
+    }
+
+    void search() {
+        testSet.find(rand() % size);
+    }
+    void eraseSetup() {
+        tmpSet = testSet;
+    }
+    void erase() {
+        tmpSet.erase(rand() % size);
     }
 };
 
@@ -370,38 +440,109 @@ int main(int argc, char* argv[]) {
      */
     
     if(argc <= 3) {
-	cout << "Args: power, times to repeat" << endl;
-	return 1;
+        cout << "Args:"<< endl <<
+            "  -p size(power) (default 6)" << endl <<
+            "  -n number_of_times_to_repeat (default 100)" <<endl <<
+            "  -I percent iterate (as decimal) " << endl <<
+            "  -N percent insert" << endl <<
+            "  -S percent search" << endl <<
+            "  -D percent delete" << endl;
+        return 1;
     }
     int opt;
     int num_pow = 6;
-    int times_repeat = 1;
-    while ((opt = getopt(argc, argv, "p:n:")) != -1) {
-	switch(opt) {
-		case 'p':
-			num_pow = atoi(optarg);
-			break;
-		case 'n':
-			times_repeat = atoi(optarg);
-			break;
-	}
+    int num_runs = 100;
+    double iterate = 0;
+    double insert = 0;
+    double search = 0;
+    double erase = 0;
+    while ((opt = getopt(argc, argv, "p:n:I:N:S:D:")) != -1) {
+        switch(opt) {
+            case 'p':
+                num_pow = atoi(optarg);
+                break;
+            case 'n':
+                num_runs = atoi(optarg);
+                break;
+            case 'I':
+                iterate = atof(optarg);
+                break;
+            case 'N':
+                insert = atof(optarg);
+                break;
+            case 'S':
+                search = atof(optarg);
+                break;
+            case 'D':
+                erase = atof(optarg);
+                break;
+        }
+    }
+    int size = pow(10, num_pow);
+
+
+    VectorBenchmark v(size);
+    auto t = v.simulateWorkload(num_runs, iterate, search, insert, erase);
+    auto v_t = t/num_runs;
+    cout<<"vector: "<<v_t<<endl;
+    auto fastest = v_t;
+    string winner = "vector";
+
+    ListBenchmark l(size);
+    t = l.simulateWorkload(num_runs, iterate, search, insert, erase);
+    auto l_t = t/num_runs;
+    cout<<"list: "<<l_t<<endl;
+    if(l_t < fastest) {
+        winner = "list";
     }
 
-    cout << "Vector" << endl;
-    VectorBenchmark v(pow(10, num_pow));
-    testBenchmark(&v, times_repeat);
+    MapBenchmark m(size);
+    t = m.simulateWorkload(num_runs, iterate, search, insert, erase);
+    auto m_t = t/num_runs;
+    cout<<"map: "<<m_t<<endl;
+    if(m_t < fastest) {
+        winner = "map";
+    }
 
-    /*cout << "List" << endl;
-    ListBenchmark l(pow(10, num_pow));
-    testBenchmark(&l, times_repeat);
+    SetBenchmark s(size);
+    t = s.simulateWorkload(num_runs, iterate, search, insert, erase);
+    auto s_t = t/num_runs;
+    cout<<"set: "<<s_t<<endl;
+    if(s_t < fastest) {
+        winner = "set";
+    }
+
+    UnorderedSetBenchmark us(size);
+    t = us.simulateWorkload(num_runs, iterate, search, insert, erase);
+    auto us_t = t/num_runs;
+    cout<<"unordered set: "<<us_t<<endl;
+    if(us_t < fastest) {
+        winner = "unordered set";
+    }
+
+    //cout <<v_t<<"\t"<<l_t<<"\t"<<m_t<<"\t"<<s_t<<"\t"<<us_t<<endl;
+
+    cout << "Winner: " << winner <<endl;
+/*
+    cout << "Vector" << endl;
+    VectorBenchmark v(size);
+    testBenchmark(&v, num_runs);
+
+    cout << "List" << endl;
+    ListBenchmark l(size);
+    testBenchmark(&l, num_runs);
 
     cout << "Map" << endl;
-    MapBenchmark m(pow(10, num_pow));
-    testBenchmark(&m, times_repeat);
+    MapBenchmark m(size);
+    testBenchmark(&m, num_runs);
 
    cout << "Set" << endl;
-    SetBenchmark s(pow(10, num_pow));
-    testBenchmark(&s, times_repeat);
+    SetBenchmark s(size);
+    testBenchmark(&s, num_runs);
+
+    cout << "Unordered Set" << endl;
+    UnorderedSetBenchmark us(size);
+    testBenchmark(&us, num_runs);
 */
     return 0;
 }
