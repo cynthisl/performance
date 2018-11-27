@@ -10,6 +10,10 @@ void setup()
  delay(1000);
 
  fp_test();
+
+ delay(1000);
+
+ trig_tests();
 }
 
 void loop()
