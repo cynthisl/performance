@@ -1,7 +1,8 @@
 #include <Arduino.h>
+#include "helpers.h"
 #define ANALOG_READ_PIN A0
 #define ANALOG_WRITE_PIN A1
-#define ANALOG_TEST_NUM_RUNS 100000
+#define ANALOG_TEST_NUM_RUNS 10000
 
 
 unsigned long analog_read_test() {
@@ -11,6 +12,15 @@ unsigned long analog_read_test() {
 
   t1 = micros();
   for(i=0; i<ANALOG_TEST_NUM_RUNS; i++) {
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
+    read_val = analogRead(ANALOG_READ_PIN);
     read_val = analogRead(ANALOG_READ_PIN);
   }
   t2 = micros();
@@ -50,19 +60,37 @@ unsigned long analog_write_test() {
   return t2-t1;
 }
 
+void print_analogio_test_order() {
+  Serial.print(F("analog_read,analog_write,"));
+}
 
+void analog_io_tests() {
+  unsigned long out;
+
+  delay(WAIT_BREAK);
+  out = analog_read_test();
+  printCSV(out, ANALOG_TEST_NUM_RUNS);
+
+  delay(WAIT_BREAK);
+  out = analog_write_test();
+printCSV(out,ANALOG_TEST_NUM_RUNS);
+
+}
+
+/*
 void analog_io_tests() {
   Serial.println("Analog IO tests");
   unsigned long out;
 
-  delay(1000);
+  delay(WAIT_BREAK);
   out = analog_read_test();
   Serial.print("Read: ");
   Serial.println(out);
 
-  delay(1000);
+  delay(WAIT_BREAK);
   out = analog_write_test();
   Serial.print("Write: ");
   Serial.println(out);
 
 }
+*/

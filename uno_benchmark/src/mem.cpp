@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "helpers.h"
 
 #define MEM_TEST_NUM_RUNS 10000
 #define MEM_TEST_ARRAY_SIZE 1024
@@ -22,10 +23,24 @@ unsigned long sram_test() {
 
 }
 
+void print_mem_test_order() {
+  Serial.print(F("sram,"));
+}
+
 void mem_tests() {
   unsigned long out;
-  delay(1000);
+
+  delay(WAIT_BREAK);
+  out = sram_test();
+  printCSV(out,MEM_TEST_NUM_RUNS);
+}
+
+/*
+void mem_tests() {
+  unsigned long out;
+  delay(WAIT_BREAK);
   out = sram_test();
   Serial.print("SRAM Test:");
   Serial.println(out);
 }
+*/
