@@ -2,7 +2,7 @@
 #include "helpers.h"
 #include "tests.h"
 
-#define NUM_BENCHMARK_RUNS 10
+#define NUM_BENCHMARK_RUNS 25
 
 void setup() {
   Serial.begin(9600);
@@ -20,22 +20,22 @@ void setup() {
   Serial.println();
 
   for(i=0; i<NUM_BENCHMARK_RUNS; i++) {
-   delay(WAIT_BREAK);
+   randomDelay();
    integer_test();
 
-   delay(WAIT_BREAK);
+   randomDelay();
    fp_test();
 
-   delay(WAIT_BREAK);
+   randomDelay();
    trig_tests();
 
-   delay(WAIT_BREAK);
+   randomDelay();
    digital_io_tests();
 
-   delay(WAIT_BREAK);
+   randomDelay();
    analog_io_tests();
 
-   delay(WAIT_BREAK);
+   randomDelay();
    mem_tests();
 
    Serial.println();

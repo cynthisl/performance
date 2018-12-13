@@ -81,15 +81,15 @@ void print_trig_test_order() {
 void trig_tests() {
   unsigned long t;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = sin_test();
   printCSV(t,TRIG_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = cos_test();
   printCSV(t,TRIG_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = tan_test();
   printCSV(t,TRIG_TEST_NUM_RUNS);
 
@@ -101,22 +101,22 @@ void trig_tests() {
 
   unsigned long t;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = sin_test();
   Serial.print("Sin: ");
   Serial.println(t);
 
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = cos_test();
   Serial.print("Cos: ");
   Serial.println(t);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   t = tan_test();
   Serial.print("Tan: ");
   Serial.println(t);
 
-  delay(WAIT_BREAK);
+  randomDelay();
 }
 */

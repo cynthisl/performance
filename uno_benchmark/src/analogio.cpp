@@ -67,11 +67,11 @@ void print_analogio_test_order() {
 void analog_io_tests() {
   unsigned long out;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = analog_read_test();
   printCSV(out, ANALOG_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = analog_write_test();
 printCSV(out,ANALOG_TEST_NUM_RUNS);
 
@@ -82,12 +82,12 @@ void analog_io_tests() {
   Serial.println("Analog IO tests");
   unsigned long out;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = analog_read_test();
   Serial.print("Read: ");
   Serial.println(out);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = analog_write_test();
   Serial.print("Write: ");
   Serial.println(out);

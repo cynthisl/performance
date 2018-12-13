@@ -30,7 +30,7 @@ void print_mem_test_order() {
 void mem_tests() {
   unsigned long out;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = sram_test();
   printCSV(out,MEM_TEST_NUM_RUNS);
 }
@@ -38,7 +38,7 @@ void mem_tests() {
 /*
 void mem_tests() {
   unsigned long out;
-  delay(WAIT_BREAK);
+  randomDelay();
   out = sram_test();
   Serial.print("SRAM Test:");
   Serial.println(out);

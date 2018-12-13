@@ -117,19 +117,19 @@ void print_fp_test_order() {
 void fp_test() {
   unsigned long out;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = fp_add_test();
   printCSV(out,FP_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = fp_subtract_test();
   printCSV(out,FP_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = fp_multiply_test();
   printCSV(out,FP_TEST_NUM_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = fp_divide_test();
   printCSV(out,FP_TEST_NUM_RUNS);
 }
@@ -139,19 +139,19 @@ void fp_test() {
 
     unsigned long out;
     Serial.println("Floating point tests");
-    delay(WAIT_BREAK);
+    randomDelay();
     out = fp_add_test();
     Serial.print("Addition: ");
     Serial.println(out);
-    delay(WAIT_BREAK);
+    randomDelay();
     out = fp_subtract_test();
     Serial.print("Sub: ");
     Serial.println(out);
-    delay(WAIT_BREAK);
+    randomDelay();
     out = fp_multiply_test();
     Serial.print("Mult: ");
     Serial.println(out);
-    delay(WAIT_BREAK);
+    randomDelay();
     out = fp_divide_test();
     Serial.print("Div: ");
     Serial.println(out);

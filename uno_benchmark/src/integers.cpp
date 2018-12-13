@@ -115,22 +115,22 @@ void integer_test() {
 
     unsigned long out;
     Serial.println("Integer tests");
-    delay(WAIT_BREAK);
+    randomDelay();
     out = integer_add_test();
     Serial.print("Addition: ");
     Serial.println(out);
 
-    delay(WAIT_BREAK);
+    randomDelay();
     out = integer_subtract_test();
     Serial.print("Sub: ");
     Serial.println(out);
 
-    delay(WAIT_BREAK);
+    randomDelay();
     out = integer_multiply_test();
     Serial.print("Mult: ");
     Serial.println(out);
 
-    delay(WAIT_BREAK);
+    randomDelay();
     out = integer_divide_test();
     Serial.print("Div: ");
     Serial.println(out);
@@ -142,19 +142,19 @@ void print_integer_test_order() {
 void integer_test() {
   unsigned long out;
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = integer_add_test();
   printCSV(out,NUM_INT_TEST_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = integer_subtract_test();
   printCSV(out,NUM_INT_TEST_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = integer_multiply_test();
   printCSV(out,NUM_INT_TEST_RUNS);
 
-  delay(WAIT_BREAK);
+  randomDelay();
   out = integer_divide_test();
   printCSV(out,NUM_INT_TEST_RUNS);
 
